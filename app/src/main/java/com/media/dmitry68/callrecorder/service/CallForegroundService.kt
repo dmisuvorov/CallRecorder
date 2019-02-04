@@ -39,7 +39,6 @@ class CallForegroundService : Service(){
         Log.d(TAG, "Service: onDestroy")
         stopCallReceiver()
         stopListenerAndInnerReceiver()
-        prefManager.setStateService(false)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -62,12 +61,11 @@ class CallForegroundService : Service(){
                 state = ModeOfWork.Background
                 startCallReceiver()
                 startNotification()
-                prefManager.setStateService(true)
             }
             STOP_FOREGROUND_AUTO_CALL_RECORD_ACTION -> {
                 Log.d(TAG, "onStartCommand: STOP_FOREGROUND_AUTO_CALL_RECORD_ACTION")
                 state = ModeOfWork.Background
-                stopForegroundService()
+                stopForegroundService(STOP_FOREGROUND_AUTO_CALL_SERVICE)
             }
 
             START_FOREGROUND_ON_DEMAND_SHAKE_RECORD_ACTION -> {
@@ -81,12 +79,11 @@ class CallForegroundService : Service(){
                 } else {
                     registerShakeDetector()
                 }
-                prefManager.setStateService(true)
             }
             STOP_FOREGROUND_ON_DEMAND_SHAKE_RECORD_ACTION -> {
                 Log.d(TAG, "onStartCommand: STOP_FOREGROUND_ON_DEMAND_RECORD_ACTION")
                 state = ModeOfWork.OnDemandShake
-                stopForegroundService()
+                stopForegroundService(STOP_FOREGROUND_SERVICE)
             }
 
             START_FOREGROUND_ON_DEMAND_BUTTON_RECORD_ACTION -> {
@@ -99,12 +96,11 @@ class CallForegroundService : Service(){
                 } else {
                     initButtonMode()
                 }
-                prefManager.setStateService(true)
             }
             STOP_FOREGROUND_ON_DEMAND_BUTTON_RECORD_ACTION -> {
                 Log.d(TAG, "onStartCommand: STOP_FOREGROUND_ON_DEMAND_BUTTON_RECORD_ACTION")
                 state = ModeOfWork.OnDemandButton
-                stopForegroundService()
+                stopForegroundService(STOP_FOREGROUND_SERVICE)
             }
         }
         return START_REDELIVER_INTENT
@@ -174,11 +170,11 @@ class CallForegroundService : Service(){
         unRegisterShakeDetector()
     }
 
-    private fun stopForegroundService(){
+    private fun stopForegroundService(message: String){
         Log.d(TAG, "Stop foreground Service")
         stopForeground(true)
         stopSelf()
-        localBroadcastManager.sendBroadcast(Intent(STOP_FOREGROUND_SERVICE))
+        localBroadcastManager.sendBroadcast(Intent(message))
     }
 
     private fun stopCallReceiver() {
@@ -192,8 +188,8 @@ class CallForegroundService : Service(){
     private fun unRegisterShakeDetector(){
         if (isRegisterShakeDetector){
             Log.d(TAG, "Unregister shake detector")
-            shakeManager.unRegisterInnerReceiver()
             sensorManager?.unregisterListener(shakeDetector)
+            shakeManager.unRegisterInnerReceiver()
             isRegisterShakeDetector = false
         }
     }
@@ -204,6 +200,8 @@ class CallForegroundService : Service(){
         private var isRegisterShakeDetector = false
 
         const val STOP_FOREGROUND_SERVICE = "com.media.dmitry68.callrecorder.service.STOP_FOREGROUND_SERVICE"
+
+        const val STOP_FOREGROUND_AUTO_CALL_SERVICE = "com.media.dmitry68.callrecorder.service.STOP_FOREGROUND_AUTO_CALL_SERVICE"
 
         const val START_FOREGROUND_AUTO_CALL_RECORD_ACTION = "com.media.dmitry68.callrecorder.service.START_FOREGROUND_AUTO_CALL_RECORD"
         const val STOP_FOREGROUND_AUTO_CALL_RECORD_ACTION = "com.media.dmitry68.callrecorder.service.STOP_FOREGROUND_AUTO_CALL_RECORD"

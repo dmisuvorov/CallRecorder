@@ -8,12 +8,14 @@ import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import com.media.dmitry68.callrecorder.MVPPresenter
+import com.media.dmitry68.callrecorder.notification.NotifyManager
 
 class ServiceManager(private val context: Context){
 
     var presenter: MVPPresenter? = null
     lateinit var modeOfWork: ModeOfWork
     private val innerReceiverOnRestartService = ReceiverOnRestartService()
+    private val notificationServiceManager = NotifyManager(context)
     private val TAG = "LOG"
 
     fun startCallService() {
@@ -52,8 +54,28 @@ class ServiceManager(private val context: Context){
     }
 
     fun registerReceiverForRestartService(){
-        val intentFilterOnStopCallService = IntentFilter(CallForegroundService.STOP_FOREGROUND_SERVICE)
+        Log.d(TAG, "ServiceManager: registerReceiverForRestartService")
+        val intentFilterOnStopCallService = IntentFilter()
+        when (modeOfWork) {
+            ModeOfWork.Background -> {
+                intentFilterOnStopCallService.addAction(CallForegroundService.STOP_FOREGROUND_AUTO_CALL_SERVICE)
+            }
+            ModeOfWork.OnDemandShake, ModeOfWork.OnDemandButton -> {
+                intentFilterOnStopCallService.addAction(ServiceOnDemandManager.STOP_SERVICE_ON_DEMAND)
+            }
+        }
         LocalBroadcastManager.getInstance(context).registerReceiver(innerReceiverOnRestartService, intentFilterOnStopCallService)
+    }
+
+    fun isServiceRunning() : Boolean{
+        val isEmptyNotification = notificationServiceManager.isActiveNotification(NotifyManager.NOTIFICATION_ID)
+        Log.d(TAG, "ServiceManager: isServiceRunning: $isEmptyNotification")
+        return isEmptyNotification
+    }
+
+    private fun onStopServiceForHisRestart() {
+        presenter?.onStopServiceForHisRestart()
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(innerReceiverOnRestartService)
     }
 
     //TODO: test service on xiaomi device;
@@ -69,8 +91,12 @@ class ServiceManager(private val context: Context){
 
     inner class ReceiverOnRestartService: BroadcastReceiver(){
         override fun onReceive(context: Context?, intent: Intent?) {
-            presenter?.onStopServiceForHisRestart()
-            LocalBroadcastManager.getInstance(context!!).unregisterReceiver(innerReceiverOnRestartService)
+            Log.d(TAG, "ReceiverOnRestartService: onReceive ${intent!!.action}")
+            when (intent.action) {
+                CallForegroundService.STOP_FOREGROUND_AUTO_CALL_SERVICE, ServiceOnDemandManager.STOP_SERVICE_ON_DEMAND -> {
+                    onStopServiceForHisRestart()
+                }
+            }
         }
     }
 }

@@ -43,7 +43,6 @@ class Recorder(
         } else {
             createAudioFile()
             prepareRecorder()
-            Thread.sleep(2000)
             try {
                 recorder?.start()
             } catch (e: Exception){
@@ -121,6 +120,7 @@ class Recorder(
             if (managerPref.getFlagSpeakerphone())
                 setSpeakerphoneInCall()
             Log.d(TAG, "Recorder: prepare Recorder $stringAudioSource, speakerphone: ${managerPref.getFlagSpeakerphone()}")
+            Thread.sleep(2000)
             recorder?.apply {
                 setAudioSource(audioSource)
                 setOutputFormat(outputFormat)

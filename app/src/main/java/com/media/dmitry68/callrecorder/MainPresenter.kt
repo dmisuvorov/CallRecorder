@@ -16,10 +16,10 @@ class MainPresenter(
     private val model = MVPModel()
 
     override fun setUp() {
-        val initialState = managerPref.getStateService()
-        model.stateOfService = initialState
         serviceManager.presenter = this
         managerPref.presenter = this
+        val initialState = serviceManager.isServiceRunning()
+        model.stateOfService = initialState
         if (!permissionManager.checkPermission())
             permissionManager.requestPermission()
         else {
@@ -42,14 +42,15 @@ class MainPresenter(
     }
 
     override fun switchCompatChange(modeService: Boolean) {
-        if (managerPref.getStateService() != modeService) {
+        val isServiceRunning = serviceManager.isServiceRunning()
+        Log.d(TAG, "Presenter: switchCompatChange $modeService and service run: $isServiceRunning")
+        if (isServiceRunning != modeService) {
             Log.d(TAG, "presenter: switchChange to $modeService")
             if (modeService) {
                 serviceManager.startCallService()
             } else {
                 serviceManager.stopCallService()
             }
-            managerPref.setStateService(modeService)//TODO: test this state in pref
             model.stateOfService = modeService
         }
     }
@@ -77,6 +78,7 @@ class MainPresenter(
     }
 
     private fun initRestartService(){
+        Log.d(TAG, "Presenter: initRestartService")
         serviceManager.registerReceiverForRestartService()
         setSwitchCompatState(false)
     }

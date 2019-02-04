@@ -10,6 +10,7 @@ import com.media.dmitry68.callrecorder.preferences.ManagerPref
 import com.media.dmitry68.callrecorder.preferences.SettingsFragment.Companion.CHANGE_PREFERENCE_COUNT_OF_SHAKE
 import com.media.dmitry68.callrecorder.preferences.SettingsFragment.Companion.CHANGE_PREFERENCE_SENSITIVITY
 import com.media.dmitry68.callrecorder.preferences.SettingsFragment.Companion.CHANGE_PREFERENCE_VIBRATE_ON_SHAKE
+import com.media.dmitry68.callrecorder.service.ServiceOnDemandManager
 
 class ShakeManager(context: Context,
                    private val shakeDetector: ShakeDetector) {
@@ -35,6 +36,7 @@ class ShakeManager(context: Context,
     fun unRegisterInnerReceiver(){
         Log.d(TAG, "ShakeManager: unregister inner receiver")
         localBroadcastManager.unregisterReceiver(innerReceiver)
+        localBroadcastManager.sendBroadcast(Intent(ServiceOnDemandManager.STOP_SERVICE_ON_DEMAND))
     }
 
     private fun changeCountOfShake(newCountOfShake: Int){

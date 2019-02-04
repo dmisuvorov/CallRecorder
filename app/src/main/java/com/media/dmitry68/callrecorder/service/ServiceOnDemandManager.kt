@@ -130,6 +130,7 @@ class ServiceOnDemandManager(private val appContext: Context,
     }
 
     companion object {
+        const val STOP_SERVICE_ON_DEMAND = "com.media.dmitry68.callrecorder.service.STOP_SERVICE_ON_DEMAND"
         const val START_RECORD_ACTION_ON_BUTTON_MODE = "com.media.dmitry68.callrecorder.service.START_RECORD_ACTION_ON_BUTTON_MODE"
         const val STOP_RECORD_ACTION_ON_DEMAND_MODE = "com.media.dmitry68.callrecorder.service.STOP_RECORD_ACTION_ON_DEMAND_MODE"
         const val ON_CALL_STATE_START = "com.media.dmitry68.callrecorder.service.ON_CALL_STATE_START"
@@ -152,7 +153,8 @@ class ServiceOnDemandManager(private val appContext: Context,
                     unregisterInnerReceiverAndClearActionInNotification()
                     if (Recorder.flagStarted)
                         onStopRecord()
-                    notificationManager.removeNotification()
+                    notificationManager.removeNotification(NotifyManager.NOTIFICATION_ID)
+                    localBroadcastManager.sendBroadcast(Intent(STOP_SERVICE_ON_DEMAND))
                 }
                 ON_CALL_STATE_START -> {
                     Log.d(TAG, "ServiceOnDemandManager: onReceive ON_CALL_STATE_START")

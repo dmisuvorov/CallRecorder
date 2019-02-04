@@ -122,6 +122,7 @@ class MainActivity : AppCompatActivity(), MVPView{
 
     inner class SwitchModeListener: CompoundButton.OnCheckedChangeListener{
         override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+            Log.d(TAG, "MainActivity: onCheckedChanged")
             presenter.switchCompatChange(isChecked)
         }
     }
